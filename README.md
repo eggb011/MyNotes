@@ -2,12 +2,12 @@
 
 A note-taking app for Android, built with Expo (React Native).
 
-Notes are typed in, listed newest-first, and saved to the device so they
-survive closing the app. Long-press a note to delete it.
+Notes are typed in, listed newest-first, and saved to the device so they survive
+closing the app. Long-press a note to delete it.
 
-**Status:** working single-user app. Notes are stored locally on one device
-only — no accounts, no sync. A Supabase backend has been provisioned but is not
-yet connected.
+**Status:** working single-user app. Notes are stored locally on one device only
+— no accounts, no sync. A Supabase backend has been provisioned but is not yet
+connected.
 
 ---
 
@@ -43,16 +43,29 @@ common reason it fails to connect.
 The first load takes 30–60 seconds while it builds. After that, saving a file
 usually refreshes the phone automatically.
 
-## Two things that will save you time
+---
+
+## Things that will save you time
 
 **If saving a file doesn't refresh the phone:** click into the terminal running
-`npx expo start` and press **`r`**. This forces a reload. It's needed more often
-than you'd expect.
+`npx expo start` and press **`r`**. It's a single keypress, not a typed command,
+and it forces a reload. Needed more often than you'd expect.
+
+**Read the terminal's last line before pressing `s`.** `s` *toggles* between Expo
+Go and development build — it doesn't select Expo Go. If it already says
+`Using Expo Go`, pressing `s` will take you out of it.
+
+**Keep two terminals open.** One runs the dev server (it's occupied and can't
+take Git commands), one is free for everything else. VS Code: Terminal → New
+Terminal.
 
 **Never run `npm audit fix --force`.** npm suggests it after showing
 vulnerability warnings. It downgrades the Expo SDK and breaks the app. The
-warnings are safe to ignore — they're in development-only dependencies that
-never ship. See `NOTES.md` for the recovery steps if it happens.
+warnings are safe to ignore — they're in development-only dependencies that never
+ship. See `NOTES.md` for recovery steps if it happens.
+
+**Save files before `git add`.** Git reads from disk, so an unsaved editor buffer
+won't be committed. `git status` before committing shows what's actually staged.
 
 ---
 
@@ -60,16 +73,18 @@ never ship. See `NOTES.md` for the recovery steps if it happens.
 
 ```
 App.js                 the entire app — UI, state, and storage
+app.json               Expo configuration
 package.json           dependencies and scripts
-.gitignore             files Git ignores (node_modules, secrets)
+.gitignore             files Git ignores (node_modules, .env secrets)
+README.md              this file
 NOTES.md               setup decisions, gotchas, and why things are as they are
 CODE_WALKTHROUGH.md    annotated tour of App.js
 CONTRIBUTING.md        how we work together on this
 ```
 
-`App.js` is currently the whole app in one file. That's deliberate for now —
-it's small enough to hold in your head. It will get split into components as it
-grows.
+`App.js` is currently the whole app in one file. That's deliberate for now — it's
+small enough to hold in your head. It will get split up as it grows, starting
+with the storage logic before Supabase lands.
 
 ## Read before changing code
 
@@ -78,10 +93,11 @@ effects, and where to plug new things in. Worth reading first; it covers a few
 non-obvious details, like why the `loaded` flag exists and why saving lives in
 its own effect rather than inside the add/delete functions.
 
-**`NOTES.md`** records setup decisions and the problems we've already hit. Check
-it before debugging anything environment-related.
+**`NOTES.md`** records setup decisions and the problems already hit. Check it
+before debugging anything environment-related.
 
-**`CONTRIBUTING.md`** covers the branch and commit workflow.
+**`CONTRIBUTING.md`** covers the branch and commit workflow, and the rule about
+never committing secrets.
 
 ---
 
@@ -91,8 +107,15 @@ it before debugging anything environment-related.
 |---|---|
 | Framework | Expo (React Native) |
 | Expo SDK | 57 — keep current with Expo Go, see `NOTES.md` |
-| Storage | AsyncStorage (device-local) |
+| React Native | 0.86.3 |
+| Storage | AsyncStorage (local cache; Supabase sync planned) |
 | Test device | Google Pixel 9a via Expo Go |
+
+**On the SDK version:** don't pin this to an older release. Expo Go auto-updates
+through the Play Store and can't be held back, so the project has to keep pace.
+`NOTES.md` has the full story — it broke in both directions on the same day.
+
+---
 
 ## Where this is heading
 
@@ -104,4 +127,10 @@ The architecture is **offline-first** — AsyncStorage stays as a local cache an
 remains the primary read path, with syncing to Supabase in the background, so
 notes appear instantly regardless of network conditions.
 
-See `NOTES.md` for the reasoning behind these choices.
+**Don't remove AsyncStorage once Supabase works.** It will look redundant. It
+isn't — it's what makes the app fast and usable offline.
+
+Row Level Security is enabled by default on all Supabase tables, so access rules
+are enforced by the database rather than trusted to app code.
+
+See `NOTES.md` for the reasoning behind all of these choices.

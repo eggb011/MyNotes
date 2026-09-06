@@ -16,6 +16,7 @@ rebuild and understand this project without re-discovering the same problems.
 |---|---|
 | Framework | Expo (React Native) |
 | Expo SDK | **57** |
+| React Native | 0.86.3 |
 | Test device | Google Pixel 9a, via Expo Go from the Play Store |
 | Editor | VS Code |
 | Storage | AsyncStorage (local cache; Supabase sync planned) |
@@ -38,82 +39,69 @@ of setup pain.
 (`App.js`) instead of a pre-wired project with dozens of files and a navigation
 system already in place. Easier to read the whole thing and understand it.
 
-### Pin to SDK 54 — **this one matters**
+### Keep the project SDK current — don't pin it
 
-The project SDK version must match what the installed Expo Go supports.
+**Current rule: track the latest SDK that Expo Go supports. Do not pin to an
+older one.**
 
-When the project was first created on **SDK 57** (the newest at the time), Expo Go
-refused to open it: *"Project is incompatible with this version of Expo Go."*
-SDK 57 had shipped, but the matching Expo Go build wasn't in the Play Store yet.
+The project SDK must match whatever version of Expo Go is installed on the test
+phone. That sounds like an argument for pinning, but it isn't, because **Expo Go
+auto-updates through the Play Store and cannot be held back.**
 
-**Superseded (September 2026).** Expo Go auto-updated via the Play Store to
-SDK 57, and then refused to open the SDK 54 project — the same error as before,
-in reverse. The project was upgraded to SDK 57.
+How this played out here — both directions in one day:
 
-**The lesson isn't "use 54," it's this:** Expo Go updates itself and cannot be
-held back. Pinning the project to an older SDK means fighting the store
-indefinitely, or asking contributors to sideload old builds. Keep the project
-SDK current instead, and expect to upgrade when Expo Go does.
+1. The project was first created on **SDK 57**, the newest at the time. Expo Go
+   refused to open it: *"Project is incompatible with this version of Expo Go."*
+   SDK 57 had shipped, but the matching Expo Go build wasn't in the store yet.
+2. The project was recreated on **SDK 54**, which `create-expo-app` labelled
+   *"for learning with Expo Go."* That worked.
+3. Later the same day, the Play Store auto-updated Expo Go to **SDK 57**, and it
+   then refused to open the SDK 54 project — the identical error, reversed.
+4. The project was upgraded to SDK 57. Working again.
 
-The `create-expo-app` menu labels one option **"for learning with Expo Go"** —
-that label is the reliable signal. It was SDK 54. Pick that one.
+**The lesson:** pinning to an older SDK means fighting the store indefinitely, or
+asking contributors to sideload old Expo Go builds. Keep the project current and
+expect to upgrade when Expo Go does.
 
-**Rule:** when starting a new Expo project for Expo Go, choose the SDK version
-the menu marks as the Expo Go learning option, not the newest.
+The `create-expo-app` "for learning with Expo Go" label is still a useful signal
+when starting a *brand new* project — it points at whatever the store currently
+has. It is not a reason to stay behind once the store catches up.
 
-### Storage: AsyncStorage, on-device only
+### Storage: AsyncStorage as the local cache
 
-Notes persist locally on the phone. No account, no sync, no server. This is
-deliberate — a single-user note-taker doesn't need a backend, and adding one
-would have tripled the scope before the basics worked.
+Notes are stored on the device with AsyncStorage. Originally this was the only
+storage — a single-user note-taker didn't need a backend, and adding one would
+have tripled the scope before the basics worked.
 
-**Known limit:** notes exist only on this one device. Uninstalling Expo Go or
+**Its role has since changed.** With Supabase coming, AsyncStorage becomes the
+local cache and primary read path rather than the only store. See
+*Backend — in progress* below.
+
+**Current limit:** notes exist only on this one device. Uninstalling Expo Go or
 clearing its data deletes them.
-
-**Updated:** this remains true today, but AsyncStorage's role has since changed
-from "the only storage" to "the local cache in an offline-first architecture."
-See *Backend — in progress* below.
 
 ---
 
 ## Gotchas — things that broke, and the fix
 
-### The SDK 54 → 57 upgrade
-
-Run in this order:
-npx expo install expo@^57.0.0
-npx expo install --fix
-npx expo-doctor
-
-
-`expo-doctor` flagged three keys in `app.json` that SDK 57 no longer recognises:
-`newArchEnabled`, `splash`, and `android.edgeToEdgeEnabled`. The first two were
-switches for behaviour that is now default; splash screens moved to a separate
-plugin. Deleting all three cleared the check (21/21).
-
-React Native jumped 0.81 → 0.86 in the same upgrade. Nothing broke, but that's
-the first place to look if something behaves oddly.
-
-**Also:** `s` in the Expo terminal *toggles* between Expo Go and development
-build — it doesn't select Expo Go. Read the last line before pressing it.
-`Using Expo Go` means you're already right.
-
 ### Never run `npm audit fix --force`
 
 **What happened:** after installing AsyncStorage, npm printed a vulnerability
 warning suggesting `npm audit fix` and `npm audit fix --force`. Running the
-`--force` version **downgraded the project from SDK 54 to SDK 53**, which
+`--force` version **downgraded the project a full SDK version**, which
 immediately broke Expo Go with a version-mismatch error.
 
-**Fix that worked:**
+**Fix that worked** (adjust the version number to whatever the project should be
+on):
 
 ```
-npx expo install expo@^54.0.0 --fix
+npx expo install expo@^57.0.0 --fix
 npx expo-doctor
 ```
 
-Naming the version explicitly (`expo@^54.0.0`) forces the core version back up;
-`--fix` realigns everything else to match. `expo-doctor` confirms it's healthy.
+Naming the version explicitly forces the core version back where it belongs;
+`--fix` realigns every other package to match. `expo-doctor` confirms it's
+healthy.
 
 **Rule:** ignore npm's vulnerability warnings in Expo projects. They're almost
 always in development-only dependencies that never ship in the app. `--force`
@@ -129,19 +117,52 @@ npx expo install <package-name>
 
 `expo install` picks the version compatible with the project's SDK. Plain
 `npm install` grabs the newest version, which may not match and can break the
-build. Confirmation it worked correctly looks like:
-`Installing 1 SDK 54.0.0 compatible native module`.
+build. Confirmation it worked looks like:
+`Installing 1 SDK 57.0.0 compatible native module`.
 
-### Press `r` to force a reload
+### Upgrading the SDK
 
-Saving a file is supposed to trigger an automatic refresh on the phone
-("fast refresh"). It doesn't always fire.
+Run in this order:
 
-**Fix:** click into the terminal running `npx expo start` and press the **`r`**
-key. This forces a reload. Shaking the phone also opens a dev menu with a
-Reload option.
+```
+npx expo install expo@^57.0.0
+npx expo install --fix
+npx expo-doctor
+```
 
-This was the fix for what looked like a completely broken app more than once.
+On the 54 → 57 upgrade, `expo-doctor` flagged three keys in `app.json` that
+SDK 57 no longer recognises: `newArchEnabled`, `splash`, and
+`android.edgeToEdgeEnabled`. The first two were switches for behaviour that is
+now default; splash screens moved to a separate plugin. Deleting all three
+cleared the check (21/21).
+
+React Native jumped 0.81 → 0.86 in the same upgrade. Nothing broke, but a major
+React Native version change is the first place to look if something behaves
+oddly after an SDK bump.
+
+### The terminal keys: `r` and `s`
+
+Both are **single keypresses made while the Expo server is running** — not
+commands you type and press Enter.
+
+**`r` reloads the app.** Saving a file is supposed to trigger an automatic
+refresh ("fast refresh"), but it doesn't always fire. `r` forces it. This was the
+fix for what looked like a completely broken app more than once.
+
+**`s` toggles between Expo Go and development build.** It does not *select* Expo
+Go — read the terminal's last line first. `Using Expo Go` means you're already
+right, and pressing `s` will take you out of it.
+
+**If the terminal shows a normal `PS ...>` prompt, the server isn't running** and
+these keys do nothing useful. In PowerShell, `r` is a shortcut for "repeat last
+command," which can silently re-run something unexpected.
+
+### Two terminals
+
+A terminal running `npx expo start` is **occupied** — it can't accept Git
+commands. Either stop the server with Ctrl + C, or open a second terminal
+(VS Code: Terminal → New Terminal) and run Git there. Keeping two open
+permanently is the normal setup: one for the dev server, one for everything else.
 
 ### Verify code actually saved before debugging behaviour
 
@@ -155,13 +176,28 @@ visual inspection proved nothing.
 **Two techniques that cracked it:**
 
 1. **Search the file for a known string.** `Ctrl + F` in VS Code for
-   `AsyncStorage`. "No results" = the code isn't there. Definitive.
+   `AsyncStorage`. "No results" means the code isn't there. Definitive.
 2. **Add a visible marker.** Temporarily change the on-screen title to
    `My Notes v2`. If the phone still shows the old title, the new code isn't
    running. Removes all guesswork about stale bundles.
 
 **Rule:** before debugging *why* code misbehaves, confirm the code is actually
 present and actually running.
+
+### Long pastes into VS Code can truncate silently
+
+This happened more than once — a pasted file landed only partly, with no error
+and no warning. **Always scroll to the bottom of a file after pasting** and
+confirm it ends where it should.
+
+### Save before `git add`
+
+Git reads files from disk. An edited-but-unsaved file in VS Code is invisible to
+it, so the change silently doesn't get committed.
+
+**Habit:** `Ctrl + S` (or `Ctrl + K` then `S` to save all), then run `git status`
+before committing to see exactly what's about to go in. This check would have
+caught two separate mistakes here.
 
 ### Git "repository not found" usually means wrong account
 
@@ -212,7 +248,13 @@ npx expo-doctor
 npx expo install --fix
 ```
 
-**Save work to GitHub** (the everyday three-command loop)
+**Check what's actually installed** (rather than what a document claims)
+
+```
+npm list expo react-native react --depth=0
+```
+
+**Save work to GitHub** (the everyday loop)
 
 ```
 git add .
@@ -220,21 +262,29 @@ git commit -m "short description of what changed"
 git push
 ```
 
+**Check state before committing**
+
+```
+git status
+git log --oneline -5
+```
+
 ---
 
 ## Open items
 
-- [ ] Revert the debug title `My Notes v2` back to `My Notes`
-- [ ] Remove the `console.log('Saving notes:', notes.length)` debug line
 - [ ] Pick a next feature: edit a note / confirm before delete / timestamps / search
+- [ ] Split storage logic out of `App.js` before adding Supabase
+
+---
 
 ## Backend — in progress
 
 **Goal:** user accounts and note sharing between users.
 
 **Service:** Supabase (hosted Postgres + auth), chosen over a custom server to
-avoid writing and hosting an API. Project provisioned September 2026 — not yet
-connected to the app.
+avoid writing and hosting an API. Project provisioned September 2026 — **not yet
+connected to the app.**
 
 ### Architecture: offline-first
 
@@ -245,19 +295,36 @@ in the background.
 **Why:** mobile connectivity is unreliable, and a note-taker that blocks on a
 spinner is worse than no app. Notes must appear instantly regardless of network.
 
+**Do not remove AsyncStorage** once Supabase works. It is not redundant — it is
+the mechanism that makes the app fast and offline-capable.
+
 **Known deferred problem:** conflict handling when the same note is edited on two
 devices. Not solved yet — revisit when it actually occurs.
 
 ### Security: automatic RLS enabled
 
-Row Level Security is switched on for all new tables by default.
+Row Level Security is switched on for all new tables by default, set at project
+creation.
 
 **Why:** RLS enforces access rules in the database itself, so a bug in app code
 can't leak another user's notes. Enabling per-table by hand means one forgotten
 table is a data leak; automatic means it can't be forgotten.
 
-**Expect this:** a new table with RLS on and no policies written allows *nothing*,
-including to you. An empty result on a fresh table is RLS working, not a bug.
+**Expect this:** a new table with RLS on and no policies written allows
+*nothing*, including to you. An empty result on a fresh table is RLS working,
+not a bug.
+
+### Keys
+
+Supabase issues two keys, and the difference matters:
+
+- **anon / publishable key** — designed to live in the app. Safety comes from
+  RLS, not from hiding it. Still kept in `.env` rather than hardcoded.
+- **service_role / secret key** — bypasses all RLS. Must never appear in app
+  code or the repo. Not needed for anything currently planned.
+
+`.env` is in `.gitignore`. The database password is stored outside the project
+folder entirely.
 
 ### Deliberately skipped: Supabase GitHub integration
 
@@ -270,6 +337,7 @@ start causing friction between contributors.
 - [ ] Connect app to Supabase (keys in `.env`, install client, verify)
 - [ ] User accounts / login
 - [ ] Note sharing between users
+
 ---
 
 ## How to keep this document useful
@@ -278,3 +346,7 @@ Update it **in the same session** as the change it describes — not later.
 Record the *why*, not just the *what*, because the why is what can't be
 recovered by reading the code. If something can't be written up right away,
 at least add a one-line placeholder so the gap is visible.
+
+When a decision is superseded, keep the original reasoning and append what
+changed. The history of why something was believed, and why that stopped being
+true, is usually the useful part.
