@@ -29,7 +29,7 @@ FlatList draws the new list
 
 ---
 
-## The file in five parts
+## The file in six parts
 
 `App.js` reads top to bottom in this order:
 
@@ -166,7 +166,6 @@ at `false` and saving would never work again.
 ```javascript
 useEffect(() => {
   if (!loaded) return;
-  console.log('Saving notes:', notes.length);   // debug line — safe to delete
   AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
 }, [notes, loaded]);
 ```
@@ -183,8 +182,6 @@ Note what *isn't* here: `addNote` and `deleteNote` don't save anything
 themselves. They only change `notes`, and this effect notices and saves. That
 separation means **any** future feature that modifies notes gets saving for free
 — editing, reordering, bulk delete. Worth preserving.
-
-The `console.log` was added for debugging and can be removed.
 
 ---
 
@@ -231,7 +228,7 @@ and hand it to the setter. This is how React knows something changed.
 return (
   <KeyboardAvoidingView style={styles.container} behavior={...}>
     <StatusBar style="auto" />
-    <Text style={styles.title}>My Notes v2</Text>
+    <Text style={styles.title}>My Notes</Text>
 
     <View style={styles.inputRow}>
       <TextInput ... />
@@ -251,9 +248,6 @@ positioned by it.
 
 The HTML-looking syntax is JSX. Curly braces `{ }` switch from markup back into
 JavaScript, which is how values and functions get passed in.
-
-> `My Notes v2` — the "v2" was a temporary debug marker to prove new code was
-> running. Safe to revert to `My Notes`.
 
 ### The input
 
@@ -365,6 +359,20 @@ Before you save a change, **predict what will happen**. Then save and see if you
 were right. Being wrong is the useful part — it points exactly at the thing you
 misunderstood. Change a colour, move a component to a different position, delete
 a line on purpose. It's all recoverable: the code is in Git.
+
+---
+
+## Coming change: this file will be split
+
+Step 2 of the build order in `NOTES.md` moves the storage logic out of `App.js`
+into its own file. Nothing about behaviour changes — the two `useEffect` blocks
+and `STORAGE_KEY` move out, and `App.js` keeps the UI and state.
+
+The reason to do it: once Supabase syncing and user accounts arrive, storage
+stops being fifteen straightforward lines. Separating it while it's still simple
+is much easier than untangling it later.
+
+**Update this document when that happens**, in the same session as the change.
 
 ---
 

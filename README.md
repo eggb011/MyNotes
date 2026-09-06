@@ -67,6 +67,9 @@ ship. See `NOTES.md` for recovery steps if it happens.
 **Save files before `git add`.** Git reads from disk, so an unsaved editor buffer
 won't be committed. `git status` before committing shows what's actually staged.
 
+**Check the bottom of any file you paste into.** Long pastes into VS Code can
+truncate silently — no error, no warning, just a file that stops early.
+
 ---
 
 ## Project structure
@@ -83,8 +86,8 @@ CONTRIBUTING.md        how we work together on this
 ```
 
 `App.js` is currently the whole app in one file. That's deliberate for now — it's
-small enough to hold in your head. It will get split up as it grows, starting
-with the storage logic before Supabase lands.
+small enough to hold in your head. The storage logic will move into its own file
+once the Supabase connection is working; see the build order in `NOTES.md`.
 
 ## Read before changing code
 
@@ -93,8 +96,8 @@ effects, and where to plug new things in. Worth reading first; it covers a few
 non-obvious details, like why the `loaded` flag exists and why saving lives in
 its own effect rather than inside the add/delete functions.
 
-**`NOTES.md`** records setup decisions and the problems already hit. Check it
-before debugging anything environment-related.
+**`NOTES.md`** records setup decisions, the problems already hit, and the build
+order for what's next. Check it before debugging anything environment-related.
 
 **`CONTRIBUTING.md`** covers the branch and commit workflow, and the rule about
 never committing secrets.
@@ -121,7 +124,7 @@ through the Play Store and can't be held back, so the project has to keep pace.
 
 **Next:** user accounts and note sharing between users, backed by Supabase
 (hosted Postgres + auth). The Supabase project exists; connecting it to the app
-is the current work.
+is the current work. The full sequence is in `NOTES.md` under *Build order*.
 
 The architecture is **offline-first** — AsyncStorage stays as a local cache and
 remains the primary read path, with syncing to Supabase in the background, so

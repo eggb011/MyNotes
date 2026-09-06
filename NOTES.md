@@ -177,9 +177,10 @@ visual inspection proved nothing.
 
 1. **Search the file for a known string.** `Ctrl + F` in VS Code for
    `AsyncStorage`. "No results" means the code isn't there. Definitive.
-2. **Add a visible marker.** Temporarily change the on-screen title to
-   `My Notes v2`. If the phone still shows the old title, the new code isn't
-   running. Removes all guesswork about stale bundles.
+2. **Add a visible marker.** Temporarily change the on-screen title to something
+   like `My Notes v2`. If the phone still shows the old title, the new code isn't
+   running. Removes all guesswork about stale bundles. Remove the marker once
+   you're done.
 
 **Rule:** before debugging *why* code misbehaves, confirm the code is actually
 present and actually running.
@@ -221,6 +222,21 @@ problem (wrong identity) was hidden behind a misleading message.
 
 **Rule:** on any push permission error, suspect authentication first, and read
 the error for *which* account Git thinks it is.
+
+### Local git output beats a remote check
+
+Fetching the repo from github.com can return a **cached** copy that looks
+unchanged even after a successful push. When verifying what's actually committed,
+trust the local commands:
+
+```
+git status
+git log --oneline -5
+git log --oneline -- NOTES.md
+```
+
+These read the real repository state. A stale web view once suggested doc updates
+hadn't landed when they had.
 
 ---
 
@@ -285,6 +301,20 @@ git log --oneline -5
 avoid writing and hosting an API. Project provisioned September 2026 — **not yet
 connected to the app.**
 
+### Build order
+
+1. **Connect to Supabase.** Keys into `.env`, install the client library, run a
+   test call. No changes to `App.js` — the goal is only to prove the connection
+   works, with nothing else tangled in to confuse a failure.
+2. **Split storage out of `App.js`.** Move the AsyncStorage load/save logic into
+   its own file. No behaviour change. Done before accounts because auth and
+   network sync would make the untangling much harder later.
+3. **User accounts.** Login screen; notes belong to a user and live in the
+   database. This is where the app changes shape most.
+4. **Note sharing.** One user shares a note with another. Depends on step 3.
+
+**Currently on step 1.**
+
 ### Architecture: offline-first
 
 AsyncStorage stays, but its role changes. It becomes the **primary read path**,
@@ -331,21 +361,6 @@ Schema-sync-on-push is a paid feature, and adding automation before a working
 schema exists makes failures hard to diagnose. Revisit if manual schema changes
 start causing friction between contributors.
 
-### Not built yet
-
-### Build order
-
-1. **Connect to Supabase.** Keys into `.env`, install the client library, run a
-   test call. No changes to `App.js` — the goal is only to prove the connection
-   works, with nothing else tangled in to confuse a failure.
-2. **Split storage out of `App.js`.** Move the AsyncStorage load/save logic into
-   its own file. No behaviour change. Done before accounts because auth and
-   network sync would make the untangling much harder later.
-3. **User accounts.** Login screen; notes belong to a user and live in the
-   database. This is where the app changes shape most.
-4. **Note sharing.** One user shares a note with another. Depends on step 3.
-
-Currently on step 1.
 ---
 
 ## How to keep this document useful
