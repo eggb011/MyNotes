@@ -15,7 +15,7 @@ rebuild and understand this project without re-discovering the same problems.
 | Thing | Choice |
 |---|---|
 | Framework | Expo (React Native) |
-| Expo SDK | **54** |
+| Expo SDK | **57** |
 | Test device | Google Pixel 9a, via Expo Go from the Play Store |
 | Editor | VS Code |
 | Storage | AsyncStorage (local cache; Supabase sync planned) |
@@ -46,6 +46,15 @@ When the project was first created on **SDK 57** (the newest at the time), Expo 
 refused to open it: *"Project is incompatible with this version of Expo Go."*
 SDK 57 had shipped, but the matching Expo Go build wasn't in the Play Store yet.
 
+**Superseded (September 2026).** Expo Go auto-updated via the Play Store to
+SDK 57, and then refused to open the SDK 54 project — the same error as before,
+in reverse. The project was upgraded to SDK 57.
+
+**The lesson isn't "use 54," it's this:** Expo Go updates itself and cannot be
+held back. Pinning the project to an older SDK means fighting the store
+indefinitely, or asking contributors to sideload old builds. Keep the project
+SDK current instead, and expect to upgrade when Expo Go does.
+
 The `create-expo-app` menu labels one option **"for learning with Expo Go"** —
 that label is the reliable signal. It was SDK 54. Pick that one.
 
@@ -68,6 +77,26 @@ See *Backend — in progress* below.
 ---
 
 ## Gotchas — things that broke, and the fix
+
+### The SDK 54 → 57 upgrade
+
+Run in this order:
+npx expo install expo@^57.0.0
+npx expo install --fix
+npx expo-doctor
+
+
+`expo-doctor` flagged three keys in `app.json` that SDK 57 no longer recognises:
+`newArchEnabled`, `splash`, and `android.edgeToEdgeEnabled`. The first two were
+switches for behaviour that is now default; splash screens moved to a separate
+plugin. Deleting all three cleared the check (21/21).
+
+React Native jumped 0.81 → 0.86 in the same upgrade. Nothing broke, but that's
+the first place to look if something behaves oddly.
+
+**Also:** `s` in the Expo terminal *toggles* between Expo Go and development
+build — it doesn't select Expo Go. Read the last line before pressing it.
+`Using Expo Go` means you're already right.
 
 ### Never run `npm audit fix --force`
 

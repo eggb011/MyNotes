@@ -90,7 +90,7 @@ it before debugging anything environment-related.
 | | |
 |---|---|
 | Framework | Expo (React Native) |
-| Expo SDK | 54 — pinned to match Play Store Expo Go, see `NOTES.md` |
+| Expo SDK | 57 — keep current with Expo Go, see `NOTES.md` |
 | Storage | AsyncStorage (device-local) |
 | Test device | Google Pixel 9a via Expo Go |
 
