@@ -195,19 +195,48 @@ git push
 - [ ] Remove the `console.log('Saving notes:', notes.length)` debug line
 - [ ] Pick a next feature: edit a note / confirm before delete / timestamps / search
 
-## Later — backend
+## Backend — in progress
 
-**Goal:** user accounts and sharing notes with other users. This requires a
-server-side database and authentication, which AsyncStorage can't provide.
+**Goal:** user accounts and note sharing between users.
 
-**Direction chosen:** a hosted backend service (**Supabase** or Firebase) rather
-than writing a custom server. These provide a database plus login out of the box,
-which is a much smaller step than building and hosting an API.
+**Service:** Supabase (hosted Postgres + auth), chosen over a custom server to
+avoid writing and hosting an API. Project provisioned September 2026 — not yet
+connected to the app.
 
-**Deliberately deferred.** The reason is known and concrete, but this is a
-significant jump in complexity and deserves its own focused effort rather than
-being bolted onto the current app.
+### Architecture: offline-first
 
+AsyncStorage stays, but its role changes. It becomes the **primary read path**,
+not a fallback. The app reads local storage immediately and syncs with Supabase
+in the background.
+
+**Why:** mobile connectivity is unreliable, and a note-taker that blocks on a
+spinner is worse than no app. Notes must appear instantly regardless of network.
+
+**Known deferred problem:** conflict handling when the same note is edited on two
+devices. Not solved yet — revisit when it actually occurs.
+
+### Security: automatic RLS enabled
+
+Row Level Security is switched on for all new tables by default.
+
+**Why:** RLS enforces access rules in the database itself, so a bug in app code
+can't leak another user's notes. Enabling per-table by hand means one forgotten
+table is a data leak; automatic means it can't be forgotten.
+
+**Expect this:** a new table with RLS on and no policies written allows *nothing*,
+including to you. An empty result on a fresh table is RLS working, not a bug.
+
+### Deliberately skipped: Supabase GitHub integration
+
+Schema-sync-on-push is a paid feature, and adding automation before a working
+schema exists makes failures hard to diagnose. Revisit if manual schema changes
+start causing friction between contributors.
+
+### Not built yet
+
+- [ ] Connect app to Supabase (keys in `.env`, install client, verify)
+- [ ] User accounts / login
+- [ ] Note sharing between users
 ---
 
 ## How to keep this document useful
