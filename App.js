@@ -36,9 +36,8 @@ export default function App() {
   }, []);
 
   // Save notes every time they change (but not before the first load finishes)
-  useEffect(() => {
+    useEffect(() => {
     if (!loaded) return;
-    console.log('Saving notes:', notes.length);
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
   }, [notes, loaded]);
 
@@ -59,7 +58,7 @@ export default function App() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <StatusBar style="auto" />
-      <Text style={styles.title}>My Notes v2</Text>
+            <Text style={styles.title}>My Notes</Text>
 
       <View style={styles.inputRow}>
         <TextInput

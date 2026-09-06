@@ -18,7 +18,7 @@ rebuild and understand this project without re-discovering the same problems.
 | Expo SDK | **54** |
 | Test device | Google Pixel 9a, via Expo Go from the Play Store |
 | Editor | VS Code |
-| Storage | AsyncStorage (on-device, local only) |
+| Storage | AsyncStorage (local cache; Supabase sync planned) |
 | Version control | Git + GitHub (account: `eggb011`) |
 
 ---
@@ -60,6 +60,10 @@ would have tripled the scope before the basics worked.
 
 **Known limit:** notes exist only on this one device. Uninstalling Expo Go or
 clearing its data deletes them.
+
+**Updated:** this remains true today, but AsyncStorage's role has since changed
+from "the only storage" to "the local cache in an offline-first architecture."
+See *Backend — in progress* below.
 
 ---
 
