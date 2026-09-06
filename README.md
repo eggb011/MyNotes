@@ -6,7 +6,8 @@ Notes are typed in, listed newest-first, and saved to the device so they
 survive closing the app. Long-press a note to delete it.
 
 **Status:** working single-user app. Notes are stored locally on one device
-only — no accounts, no sync, no server yet.
+only — no accounts, no sync. A Supabase backend has been provisioned but is not
+yet connected.
 
 ---
 
@@ -95,6 +96,12 @@ it before debugging anything environment-related.
 
 ## Where this is heading
 
-**Next:** a backend providing user accounts and note sharing between users.
-Planned approach is a hosted service (Supabase) rather than a custom server.
-This is not built yet — see `NOTES.md` for the reasoning.
+**Next:** user accounts and note sharing between users, backed by Supabase
+(hosted Postgres + auth). The Supabase project exists; connecting it to the app
+is the current work.
+
+The architecture is **offline-first** — AsyncStorage stays as a local cache and
+remains the primary read path, with syncing to Supabase in the background, so
+notes appear instantly regardless of network conditions.
+
+See `NOTES.md` for the reasoning behind these choices.
