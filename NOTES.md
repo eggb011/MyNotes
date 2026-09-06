@@ -274,7 +274,6 @@ git log --oneline -5
 ## Open items
 
 - [ ] Pick a next feature: edit a note / confirm before delete / timestamps / search
-- [ ] Split storage logic out of `App.js` before adding Supabase
 
 ---
 
@@ -334,10 +333,19 @@ start causing friction between contributors.
 
 ### Not built yet
 
-- [ ] Connect app to Supabase (keys in `.env`, install client, verify)
-- [ ] User accounts / login
-- [ ] Note sharing between users
+### Build order
 
+1. **Connect to Supabase.** Keys into `.env`, install the client library, run a
+   test call. No changes to `App.js` — the goal is only to prove the connection
+   works, with nothing else tangled in to confuse a failure.
+2. **Split storage out of `App.js`.** Move the AsyncStorage load/save logic into
+   its own file. No behaviour change. Done before accounts because auth and
+   network sync would make the untangling much harder later.
+3. **User accounts.** Login screen; notes belong to a user and live in the
+   database. This is where the app changes shape most.
+4. **Note sharing.** One user shares a note with another. Depends on step 3.
+
+Currently on step 1.
 ---
 
 ## How to keep this document useful
